@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "json"
+require_relative "../../../lib/json_response"
 
 module Http
   module Endpoints
     class Health
       def call(_env)
-        [200, { "content-type" => "application/json" }, [JSON.generate({ status: "ok" })]]
+        JsonResponse.build(200, { status: "ok" })
       end
     end
   end

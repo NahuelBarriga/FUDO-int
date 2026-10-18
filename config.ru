@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "config/boot"
+require_relative "config/routes"
+require_relative "app/http/middleware/error_handler"
 
-map "/health" do
-  run Http::Endpoints::Health.new
-end
+use Http::Middleware::ErrorHandler
+run Routes.build

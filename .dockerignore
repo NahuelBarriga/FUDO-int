@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+!.env.example
+tmp/
+log/
+coverage/
+.rspec_status
+vendor/bundle/
