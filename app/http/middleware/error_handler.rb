@@ -14,7 +14,7 @@ module Http
         Errors::NotFound => 404
       }.freeze  
 
-      def initialize(app)
+      def initialize(app, logger)
         @app = app
         @logger = logger
       end
@@ -41,7 +41,7 @@ module Http
 
       def log_unexpected(env, error)
         @logger.error({
-          request_id: env[Middleware::RequestId::ENV_KEY],
+          request_id: env[::Middleware::RequestId::ENV_KEY],
           error: error.class.name,
           message: error.message,
           backtrace: error.backtrace&.first(5)
