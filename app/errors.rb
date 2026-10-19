@@ -77,5 +77,25 @@ module Errors
     end
   end
 
+  class NameTaken < AppError
+    def initialize(message = "Name is already taken")
+      super
+    end
+
+    def code
+      "name_taken"
+    end
+  end
+
+  class ServiceUnavailable < AppError
+    def initialize(message = "Service unavailable")
+      super
+    end
+
+    def code
+      "service_unavailable"
+    end
+  end
+
   
 end

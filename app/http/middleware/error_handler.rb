@@ -16,6 +16,8 @@ module Http
         Errors::ValidationFailed => 422,
         Errors::InvalidCredentials => 401,
         Errors::Unauthorized => 401,
+        Errors::NameTaken => 409, 
+        Errors::ServiceUnavailable => 503,
       }.freeze  
 
       def initialize(app, logger)

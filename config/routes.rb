@@ -5,8 +5,8 @@ require_relative "../app/http/endpoints/health"
 require_relative "../app/http/endpoints/auth/register"
 require_relative "../app/http/endpoints/auth/login"
 require_relative "../app/http/authenticated"
-require_relative "../app/http/authenticated"
 require_relative "../app/http/endpoints/auth/me"
+require_relative "../app/http/endpoints/products/create"
 
 module Routes
   def self.build
@@ -19,7 +19,7 @@ module Routes
 
     #-- protected --
     router.get "/auth/me", Http::Authenticated.new(Http::Endpoints::Auth::Me.new)
-    
+    router.post "/products", Http::Authenticated.new(Http::Endpoints::Products::Create.new)
 
     router
   end
