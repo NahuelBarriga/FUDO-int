@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 ruby file: ".ruby-version"
 
+gem "bcrypt", "~> 3.1"
 gem "logger", "~> 1.7"
 gem "pg", "~> 1.7"
 gem "puma", "~> 8.0"
@@ -19,4 +20,5 @@ group :development, :test do
   gem "dotenv", "~> 3.2"
   gem "irb", "~> 1.18"
 end
+
 
