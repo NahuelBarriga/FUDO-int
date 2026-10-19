@@ -36,4 +36,46 @@ module Errors
       "not_found"
     end
   end
+
+  class ValidationFailed < AppError
+    def initialize(message = "Validation failed for the provided data")
+      super
+    end
+
+    def code
+      "validation_failed"
+    end
+  end
+
+  class UsernameTaken < AppError
+    def initialize(message = "Username is already taken")
+      super
+    end
+
+    def code
+      "username_taken"
+    end
+  end
+
+  class InvalidCredentials < AppError
+    def initialize(message = "Invalid username or password")
+      super
+    end
+
+    def code
+      "invalid_credentials"
+    end
+  end
+
+  class Unauthorized < AppError
+    def initialize(message = "Unauthorized")
+      super
+    end
+
+    def code
+      "unauthorized"
+    end
+  end
+
+  
 end

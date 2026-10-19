@@ -11,7 +11,11 @@ module Http
       STATUS_BY_ERROR = {
         Errors::InvalidJson => 400,
         Errors::InvalidBody => 400,
-        Errors::NotFound => 404
+        Errors::NotFound => 404, 
+        Errors::UsernameTaken => 409,
+        Errors::ValidationFailed => 422,
+        Errors::InvalidCredentials => 401,
+        Errors::Unauthorized => 401,
       }.freeze  
 
       def initialize(app, logger)
