@@ -14,7 +14,7 @@ ENV RACK_ENV=production \
 FROM base AS build
 
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential && \
+    apt-get install --no-install-recommends -y build-essential libpq-dev && \
     rm -rf /var/lib/apt/lists/*
 
 COPY Gemfile Gemfile.lock .ruby-version ./
@@ -25,6 +25,10 @@ COPY . .
 
 # ---------- Etapa final: solo lo necesario para correr ----------
 FROM base
+
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y libpq5 && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system app && \
     useradd --system --gid app --create-home app

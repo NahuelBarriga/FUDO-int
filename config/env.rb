@@ -2,7 +2,11 @@
 
 require "bundler/setup"
 
-if %w[development test].include?(ENV.fetch("RACK_ENV", "development"))
+env = ENV.fetch("RACK_ENV", "development")
+
+if %w[development test].include?(env)
   require "dotenv"
-  Dotenv.load
+
+  root = File.expand_path("..", __dir__)
+  Dotenv.load(File.join(root, ".env.#{env}"), File.join(root, ".env"))
 end
