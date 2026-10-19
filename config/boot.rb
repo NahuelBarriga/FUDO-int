@@ -4,4 +4,5 @@ require "bundler/setup"
 require_relative "env"
 require "rack"
 require_relative "database"
+require_relative "sidekiq"
 
