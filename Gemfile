@@ -13,4 +13,8 @@ end
 
 group :development, :test do
   gem "dotenv", "~> 3.2"
+  gem "irb", "~> 1.18"
 end
+
+
+gem "logger", "~> 1.7"

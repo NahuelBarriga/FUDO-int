@@ -17,6 +17,16 @@ module Errors
     end
   end
 
+  class InvalidBody < AppError
+    def initialize(message = "Request body does not match the expected structure")
+      super
+    end
+
+    def code
+      "invalid_body"
+    end
+  end
+
   class NotFound < AppError
     def initialize(message = "Resource not found")
       super

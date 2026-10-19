@@ -3,17 +3,20 @@
 require_relative "../../errors"
 require_relative "../../../lib/json_response"
 require_relative "../../../lib/router"
+require_relative "../../../lib/middleware/request_id"
 
 module Http
   module Middleware
     class ErrorHandler
       STATUS_BY_ERROR = {
         Errors::InvalidJson => 400,
+        Errors::InvalidBody => 400,
         Errors::NotFound => 404
       }.freeze  
 
       def initialize(app)
         @app = app
+        @logger = logger
       end
 
       def call(env)
@@ -25,7 +28,7 @@ module Http
       rescue Errors::AppError => e
         render(status_for(e), e.code, e.message)
       rescue StandardError => e
-        warn e.full_message
+        log_unexpected(env, e)
         render(500, "internal_error", "Internal server error")
       end
 
@@ -34,6 +37,15 @@ module Http
       def status_for(error)
         match = STATUS_BY_ERROR.find { |klass, _status| error.is_a?(klass) }
         match ? match.last : 500
+      end
+
+      def log_unexpected(env, error)
+        @logger.error({
+          request_id: env[Middleware::RequestId::ENV_KEY],
+          error: error.class.name,
+          message: error.message,
+          backtrace: error.backtrace&.first(5)
+        })
       end
 
       def render(status, code, message, headers = {})
