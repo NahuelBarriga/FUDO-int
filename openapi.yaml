@@ -1,0 +1,702 @@
+openapi: 3.1.0
+
+info:
+  title: FUDO Products API
+  version: 1.0.0
+  summary: Users, JWT authentication and asynchronous product creation.
+  description: |
+    RESTful API built on Rack (no web framework).
+
+    ## Conventions
+    - **JSON everywhere** except `GET /AUTHORS` (plain text).
+    - **Errors** always use the same shape: `{ "error": { "code": "...", "message": "..." } }`.
+      The `code` is stable and meant for programs; the `message` is for humans.
+    - **Strict request bodies:** unknown fields are rejected with `400 invalid_body`.
+      `400` means the body is malformed or does not match the structure; `422` means the
+      structure is right but a value breaks a rule (length, allowed characters).
+    - **Authentication:** protected endpoints require `Authorization: Bearer <access_token>`
+      (obtained from `POST /auth/login`). Tokens expire after `expires_in` seconds.
+    - **Ownership:** a user only sees their own products and product requests. Resources of
+      other users answer `404` (not `403`), so their existence is not revealed.
+    - **Request id:** every response carries `X-Request-Id`. Clients may send their own
+      (`[A-Za-z0-9_-]`, up to 64 characters); otherwise one is generated.
+    - **Compression:** responses are gzip-compressed when the request sends `Accept-Encoding: gzip`.
+    - **HEAD** is supported on every `GET` route. Unsupported methods answer `405` with an `Allow` header.
+    - **Rate limiting:** any route may answer `429` with `Retry-After`. Limits per client IP:
+      300 requests/minute overall, 10 logins/minute, 10 registrations/hour; and 5 logins/minute
+      per username.
+
+    ## Asynchronous product creation
+    1. `POST /products` validates the name and answers **`202 Accepted`** with a product request
+       (`status: pending`), a `Location` header pointing to it and `Retry-After: 5`.
+    2. About 5 seconds later a background worker creates the product.
+    3. Poll `GET /product_requests/{id}` until `status` is `completed` (with `product_id`) or
+       `failed` (with `error`, e.g. `name_taken`).
+    4. The product is available at `GET /products/{product_id}` and in `GET /products`.
+
+servers:
+  - url: http://localhost:9292
+    description: Local (docker compose or development)
+
+tags:
+  - name: Auth
+    description: Registration, login (JWT) and the authenticated user.
+  - name: Products
+    description: Asynchronous creation and queries of the user's products.
+  - name: Product requests
+    description: Status of an asynchronous product creation.
+  - name: System
+    description: Public endpoints that need no authentication.
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a user
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+            example:
+              username: nahuel
+              password: supersecreta
+      responses:
+        "201":
+          description: User created.
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: The username is already taken (case-insensitive).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: { code: username_taken, message: Username is already taken }
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in and get an access token
+      operationId: login
+      security: []
+      description: |
+        Usernames are case-insensitive. A wrong password and an unknown username answer
+        exactly the same `401`, so the endpoint does not reveal which usernames exist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credentials"
+            example:
+              username: nahuel
+              password: supersecreta
+      responses:
+        "200":
+          description: Valid credentials.
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Invalid username or password.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: { code: invalid_credentials, message: Invalid username or password }
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the authenticated user
+      operationId: me
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: The user that owns the token.
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            Cache-Control:
+              $ref: "#/components/headers/NoStore"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /products:
+    post:
+      tags: [Products]
+      summary: Request the creation of a product (asynchronous)
+      operationId: requestProductCreation
+      description: |
+        Does **not** create the product: it records a product request and schedules its
+        creation about 5 seconds later. Follow the `Location` header to check the result.
+
+        The name is trimmed. It must be unique per user, ignoring case and surrounding spaces:
+        `"Coca"`, `"coca"` and `" coca "` are the same name. A name already used by one of the
+        user's products, or by one of their pending requests, answers `409` right away.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreation"
+            example:
+              name: Coca
+      responses:
+        "202":
+          description: Request accepted; the product will be created asynchronously.
+          headers:
+            Location:
+              description: URL of the product request.
+              schema:
+                type: string
+                example: /product_requests/0192f3b4-1c2d-7e8f-9a0b-1c2d3e4f5a6b
+            Retry-After:
+              description: Seconds to wait before polling the product request.
+              schema:
+                type: integer
+                example: 5
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            Cache-Control:
+              $ref: "#/components/headers/NoStore"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductRequest"
+              example:
+                id: 0192f3b4-1c2d-7e8f-9a0b-1c2d3e4f5a6b
+                name: Coca
+                status: pending
+                product_id: null
+                error: null
+                created_at: "2026-10-20T14:03:21Z"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The user already has a product or a pending request with that name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: { code: name_taken, message: Name is already taken }
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          description: The creation could not be scheduled (queue unavailable). Safe to retry.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: { code: service_unavailable, message: Service unavailable }
+
+    get:
+      tags: [Products]
+      summary: List the user's products
+      operationId: listProducts
+      description: Only the authenticated user's products, ordered by creation (oldest first).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Page size.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of products to skip.
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: A page of products.
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            Cache-Control:
+              $ref: "#/components/headers/NoStore"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Invalid `limit` or `offset` (not an integer or out of range).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: { code: validation_failed, message: "limit must be an integer in 1..100" }
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /products/{id}:
+    get:
+      tags: [Products]
+      summary: Get one of the user's products
+      operationId: getProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: The product.
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            Cache-Control:
+              $ref: "#/components/headers/NoStore"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /product_requests/{id}:
+    get:
+      tags: [Product requests]
+      summary: Check the status of a product request
+      operationId: getProductRequest
+      description: |
+        `pending` → `completed` (with `product_id`) or `pending` → `failed` (with `error`).
+        Final states never change. While `pending`, the response includes `Retry-After: 1`.
+
+        Possible `error` values: `name_taken` (the name was taken meanwhile),
+        `enqueue_failed` (the creation could not be scheduled), `creation_failed`
+        (the creation kept failing after several retries).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: The product request.
+          headers:
+            Retry-After:
+              description: Present only while the request is `pending`. Seconds to wait before polling again.
+              schema:
+                type: integer
+                example: 1
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+            Cache-Control:
+              $ref: "#/components/headers/NoStore"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductRequest"
+              examples:
+                pending:
+                  value:
+                    id: 0192f3b4-1c2d-7e8f-9a0b-1c2d3e4f5a6b
+                    name: Coca
+                    status: pending
+                    product_id: null
+                    error: null
+                    created_at: "2026-10-20T14:03:21Z"
+                completed:
+                  value:
+                    id: 0192f3b4-1c2d-7e8f-9a0b-1c2d3e4f5a6b
+                    name: Coca
+                    status: completed
+                    product_id: 0192f3b9-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+                    error: null
+                    created_at: "2026-10-20T14:03:21Z"
+                failed:
+                  value:
+                    id: 0192f3b4-1c2d-7e8f-9a0b-1c2d3e4f5a6b
+                    name: Coca
+                    status: failed
+                    product_id: null
+                    error: name_taken
+                    created_at: "2026-10-20T14:03:21Z"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /AUTHORS:
+    get:
+      tags: [System]
+      summary: Get the author of the solution
+      operationId: getAuthors
+      security: []
+      description: |
+        Static plain-text file, cacheable for 24 hours by any cache. Supports conditional
+        requests: send `If-None-Match` (with the `ETag`) or `If-Modified-Since` (with the
+        `Last-Modified` date) to get `304 Not Modified` without a body.
+      parameters:
+        - name: If-None-Match
+          in: header
+          required: false
+          schema:
+            type: string
+            example: 'W/"3f0a..."'
+        - name: If-Modified-Since
+          in: header
+          required: false
+          schema:
+            type: string
+            example: Mon, 19 Oct 2026 22:10:00 GMT
+      responses:
+        "200":
+          description: The AUTHORS file.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: public, max-age=86400
+            ETag:
+              schema:
+                type: string
+                example: 'W/"3f0a..."'
+            Last-Modified:
+              schema:
+                type: string
+                example: Mon, 19 Oct 2026 22:10:00 GMT
+            X-Request-Id:
+              $ref: "#/components/headers/X-Request-Id"
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Nahuel Barriga
+        "304":
+          description: Not modified; reuse the cached copy.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      operationId: health
+      security: []
+      description: |
+        `ok`: everything is up. `degraded`: the background worker is down; the API still
+        answers (product creations wait in the queue). `down`: PostgreSQL or Redis is down.
+      responses:
+        "200":
+          description: The API can serve requests (`ok` or `degraded`).
+          headers:
+            Cache-Control:
+              $ref: "#/components/headers/NoStore"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example:
+                status: ok
+                checks: { postgres: up, redis: up, worker: up }
+        "503":
+          description: A critical dependency is down.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example:
+                status: down
+                checks: { postgres: up, redis: down, worker: down }
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Resource id (UUID). A malformed id answers `404`.
+      schema:
+        type: string
+        format: uuid
+
+  headers:
+    X-Request-Id:
+      description: Request identifier, also present in the server logs.
+      schema:
+        type: string
+    NoStore:
+      description: Responses with user data or live status must not be cached.
+      schema:
+        type: string
+        example: no-store
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema:
+        type: integer
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Stable, machine-readable error code.
+              enum:
+                - invalid_json
+                - invalid_body
+                - validation_failed
+                - invalid_credentials
+                - unauthorized
+                - not_found
+                - method_not_allowed
+                - username_taken
+                - name_taken
+                - rate_limited
+                - service_unavailable
+                - internal_error
+            message:
+              type: string
+              description: Human-readable explanation.
+
+    Credentials:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: "^[A-Za-z0-9_.-]+$"
+          description: Case-insensitive and unique. Validated on register only.
+        password:
+          type: string
+          minLength: 8
+          description: 8 to 72 **bytes** (bcrypt limit). No composition rules. Validated on register only.
+
+    User:
+      type: object
+      required: [id, username, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+          description: As written on register.
+        created_at:
+          type: string
+          format: date-time
+
+    Token:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+          description: "JWT (HS256). Send it as `Authorization: Bearer <access_token>`."
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          description: Seconds until the token expires.
+          example: 3600
+
+    ProductCreation:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: 1 to 100 characters after trimming surrounding spaces. Any character.
+          example: Coca
+
+    ProductRequest:
+      type: object
+      required: [id, name, status, product_id, error, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Trimmed name.
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        product_id:
+          type: [string, "null"]
+          format: uuid
+          description: Set only when `completed`.
+        error:
+          type: [string, "null"]
+          enum: [name_taken, enqueue_failed, creation_failed, null]
+          description: Set only when `failed`.
+        created_at:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      required: [id, name, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ProductList:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        meta:
+          type: object
+          required: [limit, offset, total]
+          properties:
+            limit:
+              type: integer
+            offset:
+              type: integer
+            total:
+              type: integer
+              description: Total number of the user's products.
+
+    Health:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+        checks:
+          type: object
+          required: [postgres, redis, worker]
+          properties:
+            postgres:
+              type: string
+              enum: [up, down]
+            redis:
+              type: string
+              enum: [up, down]
+            worker:
+              type: string
+              enum: [up, down]
+
+  responses:
+    BadRequest:
+      description: Malformed body (`invalid_json`) or body that does not match the structure (`invalid_body`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            invalid_json:
+              value:
+                error: { code: invalid_json, message: Request body is not valid JSON }
+            invalid_body:
+              value:
+                error: { code: invalid_body, message: "Request body contains unknown keys: color" }
+    ValidationFailed:
+      description: The structure is right but a value breaks a rule.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: { code: validation_failed, message: "name must be 1-100 characters (after trimming spaces)" }
+    Unauthorized:
+      description: Missing, invalid or expired token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: { code: unauthorized, message: Missing bearer token }
+    NotFound:
+      description: The resource does not exist, belongs to another user, or the id is malformed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: { code: not_found, message: Product not found }
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: { code: rate_limited, message: Too many requests }

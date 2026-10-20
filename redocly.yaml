@@ -1,0 +1,9 @@
+# Configuración del linter de OpenAPI (Redocly). Reglas recomendadas, con dos excepciones justificadas.
+extends:
+  - recommended
+
+rules:
+  # Proyecto de challenge: no se define una licencia.
+  info-license: off
+  # La API se levanta localmente (docker compose): el servidor documentado es localhost.
+  no-server-example.com: off
