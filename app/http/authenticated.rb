@@ -14,7 +14,10 @@ module Http
 
     def call(env)
       env[USER_ID_KEY] = user_id_from(env)
-      @app.call(env)
+
+      status, headers, body = @app.call(env)
+      headers["cache-control"] = "no-store"
+      [status, headers, body]
     end
 
     private
