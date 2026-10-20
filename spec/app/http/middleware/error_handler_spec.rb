@@ -57,6 +57,14 @@ RSpec.describe Http::Middleware::ErrorHandler, :aggregate_failures do
     expect(response[1]["allow"]).to eq("GET, POST")
   end
 
+  it "maps RateLimiter::Exceeded to 429 with Retry-After" do
+    response = call_raising(Middleware::RateLimiter::Exceeded.new(42))
+
+    expect(response[0]).to eq(429)
+    expect(error_of(response)["code"]).to eq("rate_limited")
+    expect(response[1]["retry-after"]).to eq("42")
+  end
+
   it "hides unexpected errors behind a generic 500" do
     response = call_raising(RuntimeError.new("secret internal detail"))
 

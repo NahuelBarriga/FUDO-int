@@ -2,98 +2,57 @@
 
 module Errors
   class AppError < StandardError
-    def code
-      "internal_error"
+    def self.code = self::CODE
+
+    def initialize(message = self.class::DEFAULT_MESSAGE)
+      super
     end
+
+    def code = self.class.code
   end
 
   class InvalidJson < AppError
-    def initialize(message = "Request body is not valid JSON")
-      super
-    end
-
-    def code
-      "invalid_json"
-    end
+    CODE = "invalid_json"
+    DEFAULT_MESSAGE = "Request body is not valid JSON"
   end
 
   class InvalidBody < AppError
-    def initialize(message = "Request body does not match the expected structure")
-      super
-    end
-
-    def code
-      "invalid_body"
-    end
+    CODE = "invalid_body"
+    DEFAULT_MESSAGE = "Request body does not match the expected structure"
   end
 
   class NotFound < AppError
-    def initialize(message = "Resource not found")
-      super
-    end
-
-    def code
-      "not_found"
-    end
+    CODE = "not_found"
+    DEFAULT_MESSAGE = "Resource not found"
   end
 
   class ValidationFailed < AppError
-    def initialize(message = "Validation failed for the provided data")
-      super
-    end
-
-    def code
-      "validation_failed"
-    end
+    CODE = "validation_failed"
+    DEFAULT_MESSAGE = "Validation failed for the provided data"
   end
 
   class UsernameTaken < AppError
-    def initialize(message = "Username is already taken")
-      super
-    end
-
-    def code
-      "username_taken"
-    end
+    CODE = "username_taken"
+    DEFAULT_MESSAGE = "Username is already taken"
   end
 
   class InvalidCredentials < AppError
-    def initialize(message = "Invalid username or password")
-      super
-    end
-
-    def code
-      "invalid_credentials"
-    end
+    CODE = "invalid_credentials"
+    DEFAULT_MESSAGE = "Invalid username or password"
   end
 
   class Unauthorized < AppError
-    def initialize(message = "Unauthorized")
-      super
-    end
-
-    def code
-      "unauthorized"
-    end
+    CODE = "unauthorized"
+    DEFAULT_MESSAGE = "Unauthorized"
   end
 
   class NameTaken < AppError
-    def initialize(message = "Name is already taken")
-      super
-    end
-
-    def code
-      "name_taken"
-    end
+    CODE = "name_taken"
+    DEFAULT_MESSAGE = "Name is already taken"
   end
 
   class ServiceUnavailable < AppError
-    def initialize(message = "Service unavailable")
-      super
-    end
-
-    def code
-      "service_unavailable"
-    end
+    CODE = "service_unavailable"
+    DEFAULT_MESSAGE = "Service unavailable"
   end
 end

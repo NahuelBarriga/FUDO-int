@@ -2,6 +2,7 @@
 
 ENV["RACK_ENV"] = "test"
 ENV["LOG_LEVEL"] = "warn"
+ENV["RATE_LIMIT_STORE"] = "memory"
 
 require "simplecov"
 SimpleCov.start do
@@ -40,5 +41,6 @@ RSpec.configure do |config|
 
   config.before do
     Sidekiq::Job.clear_all
+    RateLimits.store.clear
   end
 end

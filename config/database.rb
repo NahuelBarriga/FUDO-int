@@ -6,5 +6,6 @@ Sequel.default_timezone = :utc # para evitar problemas con los timezone
 
 DB = Sequel.connect(
   ENV.fetch("DATABASE_URL"),
-  max_connections: Integer(ENV.fetch("DB_POOL", "5"))
+  max_connections: Integer(ENV.fetch("DB_POOL", "5")),
+  connect_timeout: Integer(ENV.fetch("DB_CONNECT_TIMEOUT", "2"))
 )
