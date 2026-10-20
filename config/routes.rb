@@ -10,6 +10,7 @@ require_relative "../app/http/endpoints/products/create"
 require_relative "../app/http/endpoints/products/show"
 require_relative "../app/http/endpoints/products/index"
 require_relative "../app/http/endpoints/authors"
+require_relative "../app/http/endpoints/product_requests/show"
 
 module Routes
   def self.build
@@ -26,6 +27,7 @@ module Routes
     router.post "/products", Http::Authenticated.new(Http::Endpoints::Products::Create.new)
     router.get "/products", Http::Authenticated.new(Http::Endpoints::Products::Index.new)
     router.get "/products/:id", Http::Authenticated.new(Http::Endpoints::Products::Show.new)
+    router.get "/product_requests/:id", Http::Authenticated.new(Http::Endpoints::ProductRequests::Show.new)
 
     
 

@@ -7,6 +7,7 @@ module AccessToken
   
   ALGORITHM = "HS256"
   SECRET = ENV.fetch("JWT_SECRET")
+  raise ArgumentError, "JWT_SECRET must be at least 32 bytes" if SECRET.bytesize < 32
   TTL_SECONDS = Integer(ENV.fetch("JWT_TTL_SECONDS", "3600"))
 
   def self.issue(subject, now: Time.now)
