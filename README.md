@@ -234,6 +234,7 @@ Fuera del alcance de esta entrega, con el diseño ya pensado:
 - **Link al producto en la solicitud completada** (`links.product`), para no armar la URL del lado del cliente.
 - **Documentación navegable servida por la API** (Redoc o Swagger UI en `/docs`).
 - **Testing de contrato** test que validen cada respuesta contra el esquema de openapi.yaml
+- **Revisión de pendientes al POST de producto** Agregar un chequeo que verifique si hay un producto pendiente para ese mismo usuario 
 
 ---
 
