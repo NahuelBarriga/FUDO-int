@@ -23,6 +23,9 @@ group :development, :test do
   gem "irb", "~> 1.18"
 end
 
-
-
+group :test do 
+  gem "rspec", "~> 3.13"
+  gem "rack-test", "~> 2.2"
+  gem "simplecov", "~> 1.3"
+end 
 
