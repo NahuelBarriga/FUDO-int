@@ -1,0 +1,24 @@
+plugins:
+  - rubocop-rspec
+  - rubocop-performance
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "coverage/**/*"
+    - "tmp/**/*"
+    - "vendor/**/*"
+
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes # el proyecto usa comillas dobles
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"

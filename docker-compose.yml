@@ -22,6 +22,21 @@ services:
     <<: *app
     command: ["bundle", "exec", "sidekiq", "-r", "./config/worker.rb"]
 
+  test:
+    build:
+      context: .
+      target: test
+    profiles: ["test"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-fudo}:${POSTGRES_PASSWORD}@postgres:5432/fudo_test
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: test-only-secret-not-used-anywhere-else-0123456789
+      BCRYPT_COST: 4
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["sh", "-c", "bundle exec rake db:migrate && bundle exec rspec"]
+
   postgres:
     image: postgres:18
     environment:

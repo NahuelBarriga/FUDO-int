@@ -23,6 +23,17 @@ RUN bundle install && \
 
 COPY . .
 
+# ---------- Etapa test: build + gems de test (no se despliega) ----------
+FROM build AS test
+
+ENV RACK_ENV=test \
+    BUNDLE_WITHOUT=development
+
+RUN bundle install
+
+CMD ["bundle", "exec", "rspec"]
+
+
 # ---------- Etapa final: solo lo necesario para correr ----------
 FROM base
 
