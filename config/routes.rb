@@ -7,6 +7,8 @@ require_relative "../app/http/endpoints/auth/login"
 require_relative "../app/http/authenticated"
 require_relative "../app/http/endpoints/auth/me"
 require_relative "../app/http/endpoints/products/create"
+require_relative "../app/http/endpoints/products/show"
+require_relative "../app/http/endpoints/products/index"
 
 module Routes
   def self.build
@@ -20,6 +22,10 @@ module Routes
     #-- protected --
     router.get "/auth/me", Http::Authenticated.new(Http::Endpoints::Auth::Me.new)
     router.post "/products", Http::Authenticated.new(Http::Endpoints::Products::Create.new)
+    router.get "/products", Http::Authenticated.new(Http::Endpoints::Products::Index.new)
+    router.get "/products/:id", Http::Authenticated.new(Http::Endpoints::Products::Show.new)
+
+    
 
     router
   end
