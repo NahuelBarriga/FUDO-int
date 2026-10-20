@@ -6,7 +6,7 @@ require "time"
 module Http
   module Endpoints
     class Authors
-      PATH = File.expand_path("../../../../AUTHORS", __dir__)
+      PATH = File.expand_path("../../../AUTHORS", __dir__)
       MAX_AGE = 86_400
 
       def initialize(path = PATH)

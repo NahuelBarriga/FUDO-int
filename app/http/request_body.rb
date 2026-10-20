@@ -29,7 +29,7 @@ module Http
       raise Errors::InvalidBody, "Request body contains unknown keys: #{unknown.join(", ")}" unless unknown.empty?
       raise Errors::InvalidBody, "Request body is missing required keys: #{missing.join(", ")}" unless missing.empty?
       structure.each do |key, type| #chequea los tipos 
-        raise Errors::InvalidBody, "Key '#{key}' does not match the expected structure, must be '#{type.name.downcase} and is '#{body[key].type.name.downcase}'" unless body[key].is_a?(type)
+        raise Errors::InvalidBody, "Key '#{key}' does not match the expected structure, must be '#{type.name.downcase} and is '#{body[key].class.name.downcase}'" unless body[key].is_a?(type)
       end
     end
 

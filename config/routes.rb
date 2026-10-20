@@ -9,7 +9,7 @@ require_relative "../app/http/endpoints/auth/me"
 require_relative "../app/http/endpoints/products/create"
 require_relative "../app/http/endpoints/products/show"
 require_relative "../app/http/endpoints/products/index"
-require_relative "../app/http/endpoints/authors/authors"
+require_relative "../app/http/endpoints/authors"
 
 module Routes
   def self.build
