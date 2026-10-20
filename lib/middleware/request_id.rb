@@ -23,7 +23,8 @@ module Middleware
 
     private
 
-    def request_id_from(env) # reusa el request_id si es valido, sino genera uno nuevo
+    # reusa el request_id si es valido, sino genera uno nuevo
+    def request_id_from(env)
       incoming = env["HTTP_X_REQUEST_ID"].to_s
       VALID_ID.match?(incoming) ? incoming : SecureRandom.uuid_v7
     end

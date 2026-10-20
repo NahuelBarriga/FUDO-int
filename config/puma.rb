@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "env"
-
-max_threads = Integer(ENV.fetch("PUMA_MAX_THREADS", "3")) # default si falta la variable; Integer() falla si el valor no es numeric
+# default si falta la variable; Integer() falla si el valor no es numerics
+max_threads = Integer(ENV.fetch("PUMA_MAX_THREADS", "3"))
 threads max_threads, max_threads
 
 workers Integer(ENV.fetch("WEB_CONCURRENCY", "0"))

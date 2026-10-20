@@ -8,6 +8,7 @@ AllCops:
     - "coverage/**/*"
     - "tmp/**/*"
     - "vendor/**/*"
+  SuggestExtensions: false
 
 
 Style/StringLiterals:
@@ -25,7 +26,7 @@ Metrics/BlockLength:
 
 # Los tests de flujo (POST → job → GET) necesitan más de 5 lieas.
 RSpec/ExampleLength:
-  Max: 10
+  Max: 11
 
 Metrics/AbcSize:
   Exclude:

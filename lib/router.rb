@@ -38,7 +38,7 @@ class Router
     raise NotFound if matching.empty?
 
     route = matching.find { |r| serves(r, verb) }
-    raise MethodNotAllowed.new(allowed_methods(matching)) unless route
+    raise MethodNotAllowed, allowed_methods(matching) unless route
 
     route
   end

@@ -13,14 +13,13 @@ module Middleware
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC) # uerza que la hora sea real
       status, headers, body = @app.call(env)
 
-      entry = {
-        request_id: env[RequestId::ENV_KEY],
-        method: env["REQUEST_METHOD"],
-        path: env["PATH_INFO"],
-        status: status,
-        duration_ms: elapsed_ms(started)
-      }
-      @logger.info(entry)
+      @logger.info({
+                     request_id: env[RequestId::ENV_KEY],
+                     method: env["REQUEST_METHOD"],
+                     path: env["PATH_INFO"],
+                     status: status,
+                     duration_ms: elapsed_ms(started)
+                   })
 
       [status, headers, body]
     end
