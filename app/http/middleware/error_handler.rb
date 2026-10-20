@@ -11,14 +11,14 @@ module Http
       STATUS_BY_ERROR = {
         Errors::InvalidJson => 400,
         Errors::InvalidBody => 400,
-        Errors::NotFound => 404, 
+        Errors::NotFound => 404,
         Errors::UsernameTaken => 409,
         Errors::ValidationFailed => 422,
         Errors::InvalidCredentials => 401,
         Errors::Unauthorized => 401,
-        Errors::NameTaken => 409, 
-        Errors::ServiceUnavailable => 503,
-      }.freeze  
+        Errors::NameTaken => 409,
+        Errors::ServiceUnavailable => 503
+      }.freeze
 
       def initialize(app, logger)
         @app = app
@@ -30,7 +30,7 @@ module Http
       rescue Router::NotFound
         render(404, "not_found", "Not found")
       rescue Router::MethodNotAllowed => e
-        render( 405, "method_not_allowed", "Method not allowed", { "allow" => e.allowed_methods.join(", ") })
+        render(405, "method_not_allowed", "Method not allowed", { "allow" => e.allowed_methods.join(", ") })
       rescue Errors::AppError => e
         render(status_for(e), e.code, e.message)
       rescue StandardError => e
@@ -47,11 +47,11 @@ module Http
 
       def log_unexpected(env, error)
         @logger.error({
-          request_id: env[::Middleware::RequestId::ENV_KEY],
-          error: error.class.name,
-          message: error.message,
-          backtrace: error.backtrace&.first(5)
-        })
+                        request_id: env[::Middleware::RequestId::ENV_KEY],
+                        error: error.class.name,
+                        message: error.message,
+                        backtrace: error.backtrace&.first(5)
+                      })
       end
 
       def render(status, code, message, headers = {})

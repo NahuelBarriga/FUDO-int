@@ -2,7 +2,7 @@
 
 require_relative "../../lib/password"
 
-RSpec.describe Password do
+RSpec.describe Password, :aggregate_failures do
   describe ".digest" do
     it "never contains the plain password" do
       expect(described_class.digest("secret-123")).not_to include("secret-123")

@@ -2,7 +2,7 @@
 
 require_relative "../../lib/uuid"
 
-RSpec.describe Uuid do
+RSpec.describe Uuid, :aggregate_failures do
   describe ".valid?" do
     it "accepts a UUID" do
       expect(described_class.valid?("0192f3b4-1c2d-7e8f-9a0b-1c2d3e4f5a6b")).to be(true)

@@ -4,7 +4,7 @@ require_relative "../../lib/uuid"
 
 # Comportamiento transversal de la pila de middlewares (D26), visto desde HTTP.
 # Usa /AUTHORS porque no depende de la base, de Redis ni de un token.
-RSpec.describe "HTTP middleware stack", type: :request do
+RSpec.describe "HTTP middleware stack", :aggregate_failures, type: :request do
   it "returns 404 as JSON for unknown routes" do
     get "/does-not-exist"
 

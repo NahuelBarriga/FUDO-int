@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "GET /AUTHORS", type: :request do
+RSpec.describe "GET /AUTHORS", :aggregate_failures, type: :request do
   let(:authors_file) { File.expand_path("../../AUTHORS", __dir__) }
 
   def etag

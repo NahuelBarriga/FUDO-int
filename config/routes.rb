@@ -16,7 +16,7 @@ module Routes
   def self.build
     router = Router.new
 
-    #-- public -- 
+    #-- public --
     router.get "/health", Http::Endpoints::Health.new
     router.post "/auth/register", Http::Endpoints::Auth::Register.new
     router.post "/auth/login", Http::Endpoints::Auth::Login.new
@@ -28,8 +28,6 @@ module Routes
     router.get "/products", Http::Authenticated.new(Http::Endpoints::Products::Index.new)
     router.get "/products/:id", Http::Authenticated.new(Http::Endpoints::Products::Show.new)
     router.get "/product_requests/:id", Http::Authenticated.new(Http::Endpoints::ProductRequests::Show.new)
-
-    
 
     router
   end

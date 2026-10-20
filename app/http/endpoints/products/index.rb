@@ -24,9 +24,9 @@ module Http
           page = user_products.order(:id).limit(limit).offset(offset).all
 
           JsonResponse.build(200, {
-            data: page.map { |product| Serializers::Product.call(product) },
-            meta: { limit: limit, offset: offset, total: user_products.count }
-          })
+                               data: page.map { |product| Serializers::Product.call(product) },
+                               meta: { limit: limit, offset: offset, total: user_products.count }
+                             })
         end
 
         private

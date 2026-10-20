@@ -96,6 +96,4 @@ module Errors
       "service_unavailable"
     end
   end
-
-  
 end

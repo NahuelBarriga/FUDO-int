@@ -2,7 +2,7 @@
 
 require_relative "../../../app/services/register_user"
 
-RSpec.describe Services::RegisterUser do
+RSpec.describe Services::RegisterUser, :aggregate_failures do
   subject(:service) { described_class.new }
 
   it "creates a user with a hashed password" do

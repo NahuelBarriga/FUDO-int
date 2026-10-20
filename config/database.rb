@@ -2,7 +2,7 @@
 
 require "sequel"
 
-Sequel.default_timezone = :utc #para evitar problemas con los timezone
+Sequel.default_timezone = :utc # para evitar problemas con los timezone
 
 DB = Sequel.connect(
   ENV.fetch("DATABASE_URL"),

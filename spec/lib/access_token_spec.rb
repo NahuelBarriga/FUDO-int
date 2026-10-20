@@ -3,7 +3,7 @@
 require "jwt"
 require_relative "../../lib/access_token"
 
-RSpec.describe AccessToken do
+RSpec.describe AccessToken, :aggregate_failures do
   let(:future) { Time.now.to_i + 60 }
 
   it "returns the subject of a token it issued" do

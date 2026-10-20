@@ -17,8 +17,8 @@ gem "sidekiq", "~> 8.1"
 group :development do
   gem "rerun", "~> 0.14.0"
   gem "rubocop", "~> 1.92"
-  gem "rubocop-rspec", "~> 3.10"
   gem "rubocop-performance", "~> 1.27"
+  gem "rubocop-rspec", "~> 3.10"
 end
 
 group :development, :test do
@@ -26,10 +26,8 @@ group :development, :test do
   gem "irb", "~> 1.18"
 end
 
-group :test do 
-  gem "rspec", "~> 3.13"
+group :test do
   gem "rack-test", "~> 2.2"
+  gem "rspec", "~> 3.13"
   gem "simplecov", "~> 1.3"
-end 
-
-
+end

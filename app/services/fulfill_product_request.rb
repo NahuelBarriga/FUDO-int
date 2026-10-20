@@ -12,7 +12,7 @@ module Services
 
     def call(product_request_id:)
       DB.transaction do
-        product_request = Models::ProductRequest.where(id: product_request_id).for_update.first #bloquea el registro 
+        product_request = Models::ProductRequest.where(id: product_request_id).for_update.first # bloquea el registro
         fulfill(product_request) if product_request&.status == "pending"
       end
     rescue Sequel::UniqueConstraintViolation

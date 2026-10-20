@@ -2,7 +2,7 @@
 
 require_relative "../../../app/services/authenticate_user"
 
-RSpec.describe Services::AuthenticateUser do
+RSpec.describe Services::AuthenticateUser, :aggregate_failures do
   subject(:service) { described_class.new }
 
   let!(:user) { create_user(username: "nahuel", password: "supersecreta") }
@@ -22,9 +22,10 @@ RSpec.describe Services::AuthenticateUser do
   end
 
   it "still checks a password when the user does not exist (timing attack)" do
-    expect(Password).to receive(:matches?).once.and_call_original
+    allow(Password).to receive(:matches?).and_call_original
 
     expect { service.call(username: "noexiste", password: "incorrecta") }
       .to raise_error(Errors::InvalidCredentials)
+    expect(Password).to have_received(:matches?).once
   end
 end

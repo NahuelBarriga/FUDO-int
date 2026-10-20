@@ -2,7 +2,7 @@
 
 require_relative "../../../app/services/request_product_creation"
 
-RSpec.describe Services::RequestProductCreation do
+RSpec.describe Services::RequestProductCreation, :aggregate_failures do
   subject(:service) { described_class.new }
 
   let(:user) { create_user }

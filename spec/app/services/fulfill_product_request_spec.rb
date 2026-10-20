@@ -3,7 +3,7 @@
 require "securerandom"
 require_relative "../../../app/services/fulfill_product_request"
 
-RSpec.describe Services::FulfillProductRequest do
+RSpec.describe Services::FulfillProductRequest, :aggregate_failures do
   subject(:service) { described_class.new }
 
   let(:user) { create_user }

@@ -2,7 +2,7 @@
 
 require "securerandom"
 
-RSpec.describe "Products", type: :request do
+RSpec.describe "Products", :aggregate_failures, type: :request do
   let(:user) { create_user }
   let(:headers) { auth_headers(user) }
 

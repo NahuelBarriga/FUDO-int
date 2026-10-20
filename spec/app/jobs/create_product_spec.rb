@@ -2,7 +2,7 @@
 
 require_relative "../../../app/jobs/create_product"
 
-RSpec.describe Jobs::CreateProduct do
+RSpec.describe Jobs::CreateProduct, :aggregate_failures do
   let(:product_request) { create_product_request(user: create_user) }
 
   it "fulfills the request when performed" do

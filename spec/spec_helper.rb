@@ -12,9 +12,18 @@ end
 require_relative "../config/boot"
 require "rack/test"
 
+# Falla con un mensaje claro si la base de test no está migrada
+# (los modelos leen el esquema al cargarse, D34).
+Sequel.extension :migration
+begin
+  Sequel::Migrator.check_current(DB, File.expand_path("../db/migrations", __dir__))
+rescue Sequel::Migrator::NotCurrentError
+  abort "La base de test no está migrada. Corré: RACK_ENV=test bundle exec rake db:migrate"
+end
+
 Sidekiq.testing!(:fake)
 
-Dir[File.join(__dir__, "support", "**", "*.rb")].sort.each { |file| require file }
+Dir[File.join(__dir__, "support", "**", "*.rb")].each { |file| require file }
 
 RSpec.configure do |config|
   config.disable_monkey_patching!

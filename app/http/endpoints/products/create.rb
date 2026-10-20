@@ -25,9 +25,9 @@ module Http
           )
 
           JsonResponse.build(202, Serializers::ProductRequest.call(product_request), {
-            "location" => "/product_requests/#{product_request.id}",
-            "retry-after" => Jobs::CreateProduct::DELAY_SECONDS.to_s
-          })
+                               "location" => "/product_requests/#{product_request.id}",
+                               "retry-after" => Jobs::CreateProduct::DELAY_SECONDS.to_s
+                             })
         end
       end
     end

@@ -22,3 +22,15 @@ Style/Documentation:
 Metrics/BlockLength:
   Exclude:
     - "spec/**/*"
+
+# Los tests de flujo (POST → job → GET) necesitan más de 5 lieas.
+RSpec/ExampleLength:
+  Max: 10
+
+Metrics/AbcSize:
+  Exclude:
+    - "config/routes.rb"
+
+Metrics/MethodLength:
+  Exclude:
+    - "config/routes.rb"

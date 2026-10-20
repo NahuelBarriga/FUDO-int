@@ -4,7 +4,7 @@ require "json"
 require "stringio"
 require_relative "../../lib/json_logger"
 
-RSpec.describe JsonLogger do
+RSpec.describe JsonLogger, :aggregate_failures do
   let(:output) { StringIO.new }
   let(:logger) { described_class.build(output, level: "info") }
 

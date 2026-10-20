@@ -3,7 +3,7 @@
 require_relative "../../../lib/middleware/request_id"
 require_relative "../../../lib/uuid"
 
-RSpec.describe Middleware::RequestId do
+RSpec.describe Middleware::RequestId, :aggregate_failures do
   let(:middleware) { described_class.new(->(_env) { [200, {}, []] }) }
 
   def call_with(env = {})

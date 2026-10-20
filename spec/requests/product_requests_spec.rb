@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "GET /product_requests/:id", type: :request do
+RSpec.describe "GET /product_requests/:id", :aggregate_failures, type: :request do
   let(:user) { create_user }
   let(:headers) { auth_headers(user) }
   let(:product_request) { create_product_request(user: user, name: "Coca") }

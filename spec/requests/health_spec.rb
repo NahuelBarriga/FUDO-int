@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "GET /health", type: :request do
+RSpec.describe "GET /health", :aggregate_failures, type: :request do
   let(:worker_count) { 1 }
 
   # Redis y el worker se simulan: los tests no necesitan Redis ni Sidekiq corriendo.

@@ -20,10 +20,10 @@ module Http
           user = @authenticate_user.call(username: body["username"], password: body["password"])
 
           JsonResponse.build(200, {
-            access_token: AccessToken.issue(user.id),
-            token_type: "Bearer",
-            expires_in: AccessToken::TTL_SECONDS
-          })
+                               access_token: AccessToken.issue(user.id),
+                               token_type: "Bearer",
+                               expires_in: AccessToken::TTL_SECONDS
+                             })
         end
       end
     end

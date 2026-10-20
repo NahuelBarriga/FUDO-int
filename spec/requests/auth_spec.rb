@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Authentication", type: :request do
+RSpec.describe "Authentication", :aggregate_failures, type: :request do
   describe "POST /auth/register" do
     it "creates a user and never returns the password digest" do
       post_json "/auth/register", { username: "nahuel", password: "supersecreta" }

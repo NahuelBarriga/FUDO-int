@@ -25,18 +25,27 @@ class Router
 
   def call(env)
     path = env["PATH_INFO"]
-    verb = env["REQUEST_METHOD"]
-    matching = @routes.select { |route| route.pattern.match?(path) }
-    raise NotFound if matching.empty?
-
-    route = matching.find { |r| r.verb == verb || (verb == "HEAD" && r.verb == "GET") }
-    raise MethodNotAllowed.new(allowed_methods(matching)) unless route
+    route = find_route(env["REQUEST_METHOD"], path)
 
     env[PARAMS_KEY] = route.pattern.match(path).named_captures
     route.app.call(env)
   end
 
   private
+
+  def find_route(verb, path)
+    matching = @routes.select { |route| route.pattern.match?(path) }
+    raise NotFound if matching.empty?
+
+    route = matching.find { |r| serves(r, verb) }
+    raise MethodNotAllowed.new(allowed_methods(matching)) unless route
+
+    route
+  end
+
+  def serves(route, verb)
+    route.verb == verb || (verb == "HEAD" && route.verb == "GET")
+  end
 
   def allowed_methods(routes)
     verbs = routes.map(&:verb).uniq

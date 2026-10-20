@@ -3,7 +3,7 @@
 require "stringio"
 require_relative "../../../app/http/request_body"
 
-RSpec.describe Http::RequestBody do
+RSpec.describe Http::RequestBody, :aggregate_failures do
   let(:structure) { { "name" => String } }
 
   def parse(raw)

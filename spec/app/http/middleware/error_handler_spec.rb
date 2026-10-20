@@ -5,7 +5,7 @@ require "stringio"
 require_relative "../../../../app/http/middleware/error_handler"
 require_relative "../../../../lib/json_logger"
 
-RSpec.describe Http::Middleware::ErrorHandler do
+RSpec.describe Http::Middleware::ErrorHandler, :aggregate_failures do
   let(:log_output) { StringIO.new }
   let(:logger) { JsonLogger.build(log_output) }
 

@@ -6,9 +6,9 @@ require_relative "../../lib/password"
 
 module Services
   class AuthenticateUser
-    DUMMY_DIGEST = Password.digest("dummy-password-to-equalize-timing") #hace esto para igualar los tiempos de respuesta de usuario no existente y contraseña incorrecta, para no dar pistas a un atacante
+    DUMMY_DIGEST = Password.digest("dummy-password-to-equalize-timing") # hace esto para igualar los tiempos de respuesta de usuario no existente y contraseña incorrecta, para no dar pistas a un atacante
 
-    def call(username:, password:) 
+    def call(username:, password:)
       user = Models::User.where(
         Sequel.function(:lower, :username) => Sequel.function(:lower, username)
       ).first

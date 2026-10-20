@@ -24,14 +24,24 @@ module Http
     end
 
     def self.check_structure!(body, structure)
-      unknown = body.keys - structure.keys #chequea si hay key no presentes en la estructura 
-      missing = structure.keys - body.keys #chequea si faltan keys de la estructura en el body
-      raise Errors::InvalidBody, "Request body contains unknown keys: #{unknown.join(", ")}" unless unknown.empty?
-      raise Errors::InvalidBody, "Request body is missing required keys: #{missing.join(", ")}" unless missing.empty?
-      structure.each do |key, type| #chequea los tipos 
-        raise Errors::InvalidBody, "Key '#{key}' does not match the expected structure, must be '#{type.name.downcase} and is '#{body[key].class.name.downcase}'" unless body[key].is_a?(type)
-      end
+      reject_keys!(body.keys - structure.keys, "contains unknown keys")
+      reject_keys!(structure.keys - body.keys, "is missing required keys")
+      structure.each { |key, type| check_type!(key, body[key], type) }
     end
+
+    def self.reject_keys!(keys, problem)
+      return if keys.empty?
+
+      raise Errors::InvalidBody, "Request body #{problem}: #{keys.join(", ")}"
+    end
+
+    def self.check_type!(key, value, type)
+      return if value.is_a?(type)
+
+      raise Errors::InvalidBody, "Field '#{key}' must be a #{type.name.downcase}, got #{value.class.name.downcase}"
+    end
+
+    private_class_method :parse_json, :check_structure!, :reject_keys!, :check_type!
 
     private_class_method :parse_json, :check_structure!
   end

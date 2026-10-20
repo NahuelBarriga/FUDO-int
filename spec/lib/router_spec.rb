@@ -2,7 +2,7 @@
 
 require_relative "../../lib/router"
 
-RSpec.describe Router do
+RSpec.describe Router, :aggregate_failures do
   let(:ok_app) { ->(_env) { [200, {}, ["ok"]] } }
 
   let(:router) do

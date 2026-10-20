@@ -10,7 +10,7 @@ module Middleware
     end
 
     def call(env)
-      started = Process.clock_gettime(Process::CLOCK_MONOTONIC) #uerza que la hora sea real
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC) # uerza que la hora sea real
       status, headers, body = @app.call(env)
 
       entry = {

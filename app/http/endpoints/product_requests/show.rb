@@ -17,8 +17,8 @@ module Http
           raise Errors::NotFound, "Product request not found" unless Uuid.valid?(id)
 
           product_request = Models::ProductRequest
-            .where(id: id, user_id: env[Authenticated::USER_ID_KEY])
-            .first
+                            .where(id: id, user_id: env[Authenticated::USER_ID_KEY])
+                            .first
           raise Errors::NotFound, "Product request not found" unless product_request
 
           JsonResponse.build(200, Serializers::ProductRequest.call(product_request), headers_for(product_request))
